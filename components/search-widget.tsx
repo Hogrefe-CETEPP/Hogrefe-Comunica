@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { Search, ChevronRight, Loader2 } from "lucide-react";
 import { searchComunicadosByTitle } from "@/lib/actions/mainpage";
 
+interface Comunicado {
+  id: string;
+  title: string;
+  createdAt: Date;
+}
+
 export default function SearchWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
