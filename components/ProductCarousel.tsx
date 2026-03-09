@@ -1,15 +1,12 @@
 "use client";
 
 import React, { useRef, useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import { Comunicado } from "@/lib/actions/comunicados";
 import { loadMoreComunicados } from "@/lib/actions/mainpage";
 
 import "swiper/css";
-import "swiper/css/navigation";
 import Link from "next/link";
 
 interface ProductCarouselProps {
@@ -33,8 +30,6 @@ export default function ProductCarousel({
   initialComunicados,
   total,
 }: ProductCarouselProps) {
-  const prevRef = useRef<HTMLButtonElement>(null);
-  const nextRef = useRef<HTMLButtonElement>(null);
   const [comunicados, setComunicados] =
     useState<Comunicado[]>(initialComunicados);
   const [isPending, startTransition] = useTransition();
@@ -76,32 +71,21 @@ export default function ProductCarousel({
   return (
     <div className="relative group">
       <button
-        ref={prevRef}
+        onClick={() => swiperRef.current?.slidePrev()}
         className="absolute left-0 top-1/2 -translate-y-1/2 z-10 -translate-x-2 md:-translate-x-12 bg-[#AEACAC] hover:bg-gray-400  text-white rounded-sm disabled:opacity-30 transition"
       >
         <img src="/esquerda.png" alt="esquerda" />
       </button>
       <button
-        ref={nextRef}
+        onClick={() => swiperRef.current?.slideNext()}
         className="absolute right-0 top-1/2 -translate-y-1/2 z-10 translate-x-2 md:translate-x-12  hover:bg-gray-400  text-white rounded-sm disabled:opacity-30 transition"
       >
         <img src="/direita.png" alt="direita" />
       </button>
 
       <Swiper
-        modules={[Navigation]}
         spaceBetween={30}
         slidesPerView={1}
-        navigation={{
-          prevEl: prevRef.current,
-          nextEl: nextRef.current,
-        }}
-        onBeforeInit={(swiper) => {
-          // @ts-ignore
-          swiper.params.navigation.prevEl = prevRef.current;
-          // @ts-ignore
-          swiper.params.navigation.nextEl = nextRef.current;
-        }}
         onSwiper={(swiper) => {
           swiperRef.current = swiper;
         }}
