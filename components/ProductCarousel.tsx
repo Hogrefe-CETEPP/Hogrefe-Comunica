@@ -77,15 +77,15 @@ export default function ProductCarousel({
     <div className="relative group">
       <button
         ref={prevRef}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 -translate-x-2 md:-translate-x-12 bg-gray-400/50 hover:bg-gray-400 p-2 text-white rounded-sm disabled:opacity-30 transition"
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 -translate-x-2 md:-translate-x-12 bg-[#AEACAC] hover:bg-gray-400  text-white rounded-sm disabled:opacity-30 transition"
       >
-        <ChevronLeft size={32} />
+        <img src="/esquerda.png" alt="esquerda" />
       </button>
       <button
         ref={nextRef}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 translate-x-2 md:translate-x-12 bg-gray-400/50 hover:bg-gray-400 p-2 text-white rounded-sm disabled:opacity-30 transition"
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 translate-x-2 md:translate-x-12  hover:bg-gray-400  text-white rounded-sm disabled:opacity-30 transition"
       >
-        <ChevronRight size={32} />
+        <img src="/direita.png" alt="direita" />
       </button>
 
       <Swiper

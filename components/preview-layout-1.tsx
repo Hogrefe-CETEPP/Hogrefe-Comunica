@@ -188,15 +188,18 @@ export function PreviewLayout1({
       )}
 
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
-        <img
-          src="/logo.webp"
-          alt="logo"
-          className="w-[100px] sm:w-[127px] ml-2 md:ml-4 h-auto"
-        />
+        <Link href="https://hogrefe.com.br/">
+          {" "}
+          <img
+            src="/logo.webp"
+            alt="logo"
+            className="w-[100px] sm:w-[127px] ml-4 md:ml-4 h-auto"
+          />
+        </Link>
       </header>
 
-      <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3">
-        <div className="max-w-7xl mx-auto">
+      <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 ml-6 md:ml-0">
+        <div className="max-w-7xl mx-auto ">
           <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
             <Link href="/" className="cursor-pointer">
               {" "}
@@ -221,7 +224,7 @@ export function PreviewLayout1({
               onClick={() => {
                 pathname === "/dashboard" ? null : router.push("/");
               }}
-              className="flex items-center cursor-pointer font-lyon-semibold gap-1 lg:absolute lg:left-0 text-[#EE1515] font-medium hover:text-red-700 mb-4 lg:mb-0"
+              className="flex items-center ml-6 md:ml-0 cursor-pointer font-lyon-semibold gap-1 lg:absolute lg:left-0 text-[#EE1515] font-medium hover:text-red-700 mb-4 lg:mb-0"
             >
               <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" />
               <span className="text-sm sm:text-base">Voltar</span>
@@ -230,7 +233,7 @@ export function PreviewLayout1({
 
           {/* Main content - Centered */}
           <div className="flex-1 flex justify-center">
-            <div className="w-full max-w-[700px]">
+            <div className="w-full max-w-[700px] px-6 md:px-0">
               {/* Tags */}
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
