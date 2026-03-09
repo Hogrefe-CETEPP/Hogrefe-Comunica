@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import FilterSelect from "@/components/filter-select";
 import { fetchComunicados } from "@/lib/actions/mainpage";
-import type { Comunicado } from "@prisma/client";
 import Link from "next/link";
 
 type FilterOption =
@@ -12,6 +11,12 @@ type FilterOption =
   | "Data (mais antigos)"
   | "Título (A-Z)"
   | "Título (Z-A)";
+
+interface Comunicado {
+  id: string;
+  title: string;
+  createdAt: Date;
+}
 
 interface ComunicadosSectionProps {
   initialComunicados: Comunicado[];
