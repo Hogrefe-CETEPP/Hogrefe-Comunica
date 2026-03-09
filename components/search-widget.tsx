@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ChevronRight, Loader2 } from "lucide-react";
 import { searchComunicadosByTitle } from "@/lib/actions/mainpage";
-import type { Comunicado } from "@prisma/client";
 
 export default function SearchWidget() {
   const [isOpen, setIsOpen] = useState(false);
