@@ -151,7 +151,6 @@ export function PreviewLayout1({
 
   return (
     <div className="min-h-screen bg-white mt-8">
-      {/* ✅ container invisível só para medir e decidir split */}
       {image && blocks.length > 0 && (
         <div
           ref={measureWrapRef}
@@ -187,32 +186,40 @@ export function PreviewLayout1({
         </div>
       )}
 
-      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
-        <Link href="https://hogrefe.com.br/">
-          {" "}
-          <img
-            src="/logo.webp"
-            alt="logo"
-            className="w-[100px] sm:w-[127px] ml-4 md:ml-4 h-auto"
-          />
-        </Link>
-      </header>
-
-      <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 ml-6 md:ml-0">
-        <div className="max-w-7xl mx-auto ">
-          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
-            <Link href="/" className="cursor-pointer">
-              {" "}
-              <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <Link href="/" className="cursor-pointer">
-              <span className="font-lyon text-[#000000A8] shrink-0">
-                Comunicados
+      <div className="sticky top-0 z-50 bg-white">
+        <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+          <Link href="https://hogrefe.com.br/">
+            {" "}
+            <img
+              src="/logo.webp"
+              alt="logo"
+              className="w-[100px] sm:w-[127px] ml-4 md:ml-4 h-auto"
+            />
+          </Link>
+        </header>
+        <img
+          className="absolute min-h-[100vh] top-4"
+          src="/barra-comunicado.png"
+          alt="barra"
+        />
+        <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 ml-6 md:ml-0">
+          <div className="max-w-7xl mx-auto ">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
+              <Link href="/" className="cursor-pointer">
+                {" "}
+                <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              </Link>
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <Link href="/" className="cursor-pointer">
+                <span className="font-lyon text-[#000000A8] shrink-0">
+                  Comunicados
+                </span>
+              </Link>
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="text-[#000000A8] font-lyon truncate">
+                {title}
               </span>
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="text-[#000000A8] font-lyon truncate">{title}</span>
+            </div>
           </div>
         </div>
       </div>
