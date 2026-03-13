@@ -19,11 +19,6 @@ export default async function ComunicadoPage({ params }: PageProps) {
 
   return (
     <>
-      <img
-        className="fixed min-h-screen mt-[16px] z-50 "
-        src="/barra2.png"
-        alt="barra"
-      />
       <PreviewLayout1
         title={comunicado.title}
         tags={comunicado.tags}
