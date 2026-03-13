@@ -36,8 +36,8 @@ export default async function Home() {
           />
         </Link>
         <img
-          className="fixed min-h-[90vh] z-50 top-0"
-          src="/barra2.png"
+          className="fixed min-h-screen z-50 top-0"
+          src="/barra-comunicado.png"
           alt="barra"
         />
 
