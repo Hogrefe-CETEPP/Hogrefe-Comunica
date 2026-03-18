@@ -26,7 +26,7 @@ export default async function Home() {
       z-10
       w-[110px] h-auto
 
-      relative mx-auto mb-3
+      relative ml-5 md:ml-0 mb-3
 
       
       sm:absolute sm:mb-0 sm:mx-0
@@ -36,8 +36,8 @@ export default async function Home() {
           />
         </Link>
         <img
-          className="fixed min-h-screen z-50 top-0"
-          src="/barra-comunicado.png"
+          className="fixed w-[10px] top-0 h-screen z-50 "
+          src="/barra-comunicado.webp"
           alt="barra"
         />
 
