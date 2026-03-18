@@ -185,7 +185,11 @@ export function PreviewLayout1({
           </div>
         </div>
       )}
-
+      <img
+        className="fixed h-screen w-[10px] top-0 z-[100]"
+        src="/barra-comunicado.webp"
+        alt="barra"
+      />
       <div className="sticky top-0 z-50 bg-white">
         <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
           <Link href="https://hogrefe.com.br/">
@@ -197,11 +201,7 @@ export function PreviewLayout1({
             />
           </Link>
         </header>
-        <img
-          className="absolute min-h-[100vh] top-4"
-          src="/barra-comunicado.png"
-          alt="barra"
-        />
+
         <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 ml-6 md:ml-0">
           <div className="max-w-7xl mx-auto ">
             <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
