@@ -21,27 +21,23 @@ function getFile(input: FormData | File): File | null {
 
 function sanitizeFileName(fileName: string) {
   const normalized = fileName
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9._-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+    .normalize("NFC")
+    .replace(/[\\/]/g, "-")
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .replace(/[?#%]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/\.{2,}/g, ".")
+    .trim();
 
   return normalized || "arquivo";
 }
 
 function createBlobPath(fileName: string) {
   const safeFileName = sanitizeFileName(fileName);
-  const fileExtension = safeFileName.includes(".")
-    ? `.${safeFileName.split(".").pop()}`
-    : "";
-  const baseName = fileExtension
-    ? safeFileName.slice(0, -fileExtension.length)
-    : safeFileName;
   const timestamp = Date.now();
   const randomStr = Math.random().toString(36).substring(2, 8);
 
-  return `comunicados/${baseName}_${timestamp}_${randomStr}${fileExtension}`;
+  return `comunicados/${timestamp}-${randomStr}/${safeFileName}`;
 }
 
 export async function uploadFileToBlob(
@@ -55,7 +51,7 @@ export async function uploadFileToBlob(
     }
 
     if (file.size > MAX_UPLOAD_SIZE) {
-      return { success: false, error: "Arquivo muito grande. Maximo 10MB" };
+      return { success: false, error: "Arquivo muito grande. Maximo 30MB" };
     }
 
     const blob = await upload(createBlobPath(file.name), file, {
