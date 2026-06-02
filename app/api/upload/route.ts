@@ -1,16 +1,19 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions, getCurrentUser } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 
 const MAX_UPLOAD_SIZE = 30 * 1024 * 1024;
 const UPLOAD_PATH_PREFIX = "comunicados/";
+const MAX_BLOB_PATH_LENGTH = 950;
 
 function isValidUploadPath(pathname: string) {
   return (
     pathname.startsWith(UPLOAD_PATH_PREFIX) &&
+    pathname.length <= MAX_BLOB_PATH_LENGTH &&
     !pathname.includes("..") &&
-    /^[a-zA-Z0-9/_.,-]+$/.test(pathname)
+    !pathname.includes("//") &&
+    !/[\u0000-\u001f\u007f]/.test(pathname)
   );
 }
 
@@ -22,9 +25,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-        const session = await getCurrentUser();
+        const session = await getServerSession(authOptions);
+        const user = session?.user as { role?: string } | undefined;
 
-        if (!session || session.role !== "admin") {
+        if (!user || user.role !== "admin") {
           throw new Error("Upload nao autorizado");
         }
 
