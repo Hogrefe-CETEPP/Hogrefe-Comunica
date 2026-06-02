@@ -1,6 +1,7 @@
-"use server";
+import { upload } from "@vercel/blob/client";
 
-import { put, del } from "@vercel/blob";
+const MAX_UPLOAD_SIZE = 30 * 1024 * 1024;
+const MULTIPART_UPLOAD_SIZE = 4 * 1024 * 1024;
 
 export interface UploadResult {
   success: boolean;
@@ -9,34 +10,64 @@ export interface UploadResult {
   error?: string;
 }
 
+function getFile(input: FormData | File): File | null {
+  if (input instanceof File) {
+    return input;
+  }
+
+  const file = input.get("file");
+  return file instanceof File ? file : null;
+}
+
+function sanitizeFileName(fileName: string) {
+  const normalized = fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return normalized || "arquivo";
+}
+
+function createBlobPath(fileName: string) {
+  const safeFileName = sanitizeFileName(fileName);
+  const fileExtension = safeFileName.includes(".")
+    ? `.${safeFileName.split(".").pop()}`
+    : "";
+  const baseName = fileExtension
+    ? safeFileName.slice(0, -fileExtension.length)
+    : safeFileName;
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 8);
+
+  return `comunicados/${baseName}_${timestamp}_${randomStr}${fileExtension}`;
+}
+
 export async function uploadFileToBlob(
-  formData: FormData,
+  input: FormData | File,
 ): Promise<UploadResult> {
   try {
-    const file = formData.get("file") as File;
+    const file = getFile(input);
 
     if (!file) {
       return { success: false, error: "Nenhum arquivo enviado" };
     }
 
-    // Validar tamanho (máximo 10MB)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      return { success: false, error: "Arquivo muito grande. Máximo 10MB" };
+    if (file.size > MAX_UPLOAD_SIZE) {
+      return { success: false, error: "Arquivo muito grande. Maximo 10MB" };
     }
 
-    // Adicionar timestamp e string aleatória ao nome do arquivo
-    const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 8);
-    const fileExtension = file.name.includes(".")
-      ? `.${file.name.split(".").pop()}`
-      : "";
-    const baseName = file.name.replace(fileExtension, "");
-    const uniqueFileName = `${baseName}_${timestamp}_${randomStr}${fileExtension}`;
-
-    // Upload para Vercel Blob
-    const blob = await put(uniqueFileName, file, {
+    const blob = await upload(createBlobPath(file.name), file, {
       access: "public",
+      handleUploadUrl: "/api/upload",
+      contentType: file.type || "application/octet-stream",
+      multipart: file.size > MULTIPART_UPLOAD_SIZE,
+      clientPayload: JSON.stringify({
+        originalFileName: file.name,
+        size: file.size,
+        contentType: file.type || "application/octet-stream",
+      }),
     });
 
     return {
@@ -55,9 +86,10 @@ export async function deleteFileFromBlob(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     if (!url) {
-      return { success: false, error: "URL não fornecida" };
+      return { success: false, error: "URL nao fornecida" };
     }
 
+    const { del } = await import("@vercel/blob");
     await del(url);
 
     return { success: true };
