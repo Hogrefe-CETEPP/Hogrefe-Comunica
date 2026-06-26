@@ -1,0 +1,20 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        # Amplify nao injeta env vars do painel no runtime SSR (Lambda) automaticamente.
+        # Gravamos as vars de RUNTIME num .env.production durante o build.
+        - env | grep -e MYSQL_HOST -e MYSQL_USER -e MYSQL_PASSWORD -e MYSQL_DATABASE -e NEXTAUTH_SECRET -e NEXTAUTH_URL -e BLOB_READ_WRITE_TOKEN >> .env.production
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
