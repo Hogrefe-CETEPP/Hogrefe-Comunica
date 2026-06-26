@@ -62,20 +62,26 @@ export function keyFromUrl(url: string): string | null {
 }
 
 // Gera uma URL presigned para o client fazer PUT direto no S3 (o arquivo NAO
-// passa pelo servidor). O ContentType assinado precisa ser identico ao header
-// "Content-Type" que o client enviar no PUT, senao o S3 rejeita a requisicao.
+// passa pelo servidor). Os headers assinados (Content-Type e, quando definido,
+// Content-Disposition) precisam ser identicos aos que o client enviar no PUT,
+// senao o S3 rejeita a requisicao.
 export async function createPresignedPutUrl(
   key: string,
   contentType: string,
-  expiresInSeconds = 300,
+  options: { contentDisposition?: string; expiresInSeconds?: number } = {},
 ): Promise<string> {
   const command = new PutObjectCommand({
     Bucket: BUCKET,
     Key: key,
     ContentType: contentType,
+    ...(options.contentDisposition
+      ? { ContentDisposition: options.contentDisposition }
+      : {}),
   });
 
-  return getSignedUrl(s3, command, { expiresIn: expiresInSeconds });
+  return getSignedUrl(s3, command, {
+    expiresIn: options.expiresInSeconds ?? 300,
+  });
 }
 
 export async function deleteObjectFromS3(url: string): Promise<void> {

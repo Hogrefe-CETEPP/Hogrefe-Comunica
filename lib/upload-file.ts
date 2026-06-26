@@ -47,6 +47,7 @@ export async function uploadFileToBlob(
     const data = (await response.json().catch(() => null)) as {
       uploadUrl?: string;
       publicUrl?: string;
+      contentDisposition?: string;
       error?: string;
     } | null;
 
@@ -58,10 +59,16 @@ export async function uploadFileToBlob(
     }
 
     // 2. Envia o arquivo DIRETO para o S3 (nao passa pelo Lambda).
+    // Os headers precisam ser identicos aos assinados pelo servidor.
+    const putHeaders: Record<string, string> = { "Content-Type": contentType };
+    if (data.contentDisposition) {
+      putHeaders["Content-Disposition"] = data.contentDisposition;
+    }
+
     const putResponse = await fetch(data.uploadUrl, {
       method: "PUT",
       body: file,
-      headers: { "Content-Type": contentType },
+      headers: putHeaders,
     });
 
     if (!putResponse.ok) {

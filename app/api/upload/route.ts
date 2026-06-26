@@ -51,14 +51,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     const contentType = body.contentType || "application/octet-stream";
     const key = createObjectKey(body.fileName);
 
-    const uploadUrl = await createPresignedPutUrl(
-      key,
-      contentType,
-      PRESIGN_EXPIRES_SECONDS,
-    );
+    // Imagens devem abrir/renderizar normalmente (<img>); demais arquivos
+    // (PDFs etc.) recebem Content-Disposition: attachment para forcar download
+    // ao acessar a URL publica direto, sem proxy pelo Lambda.
+    const contentDisposition = contentType.startsWith("image/")
+      ? undefined
+      : "attachment";
+
+    const uploadUrl = await createPresignedPutUrl(key, contentType, {
+      contentDisposition,
+      expiresInSeconds: PRESIGN_EXPIRES_SECONDS,
+    });
     const publicUrl = publicUrlForKey(key);
 
-    return NextResponse.json({ uploadUrl, publicUrl });
+    return NextResponse.json({ uploadUrl, publicUrl, contentDisposition });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Erro ao gerar URL de upload";

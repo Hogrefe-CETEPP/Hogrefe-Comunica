@@ -345,11 +345,7 @@ export function PreviewLayout1({
               {downloadButtonText && (
                 <div className="flex justify-center my-6 sm:my-8">
                   <a
-                    href={
-                      downloadFile
-                        ? `/api/download?url=${encodeURIComponent(downloadFile)}`
-                        : "#"
-                    }
+                    href={downloadFile || "#"}
                     rel="noopener noreferrer"
                     className="bg-[#EE1B2D] cursor-pointer text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-2xl flex items-center gap-2 font-medium text-sm sm:text-base"
                     style={{
