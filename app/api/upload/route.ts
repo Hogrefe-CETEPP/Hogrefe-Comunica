@@ -1,58 +1,68 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import {
+  createObjectKey,
+  createPresignedPutUrl,
+  publicUrlForKey,
+} from "@/lib/s3";
 
-const MAX_UPLOAD_SIZE = 30 * 1024 * 1024;
-const UPLOAD_PATH_PREFIX = "comunicados/";
-const MAX_BLOB_PATH_LENGTH = 950;
-
-function isValidUploadPath(pathname: string) {
-  return (
-    pathname.startsWith(UPLOAD_PATH_PREFIX) &&
-    pathname.length <= MAX_BLOB_PATH_LENGTH &&
-    !pathname.includes("..") &&
-    !pathname.includes("//") &&
-    !/[\u0000-\u001f\u007f]/.test(pathname)
-  );
-}
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
+const PRESIGN_EXPIRES_SECONDS = 5 * 60;
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
-
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname, clientPayload) => {
-        const session = await getServerSession(authOptions);
-        const user = session?.user as { role?: string } | undefined;
+    const session = await getServerSession(authOptions);
+    const user = session?.user as { role?: string } | undefined;
 
-        if (!user || user.role !== "admin") {
-          throw new Error("Upload nao autorizado");
-        }
+    if (!user || user.role !== "admin") {
+      return NextResponse.json(
+        { error: "Upload nao autorizado" },
+        { status: 401 },
+      );
+    }
 
-        if (!isValidUploadPath(pathname)) {
-          throw new Error("Caminho de upload invalido");
-        }
+    const body = (await request.json().catch(() => null)) as {
+      fileName?: string;
+      contentType?: string;
+      size?: number;
+    } | null;
 
-        return {
-          maximumSizeInBytes: MAX_UPLOAD_SIZE,
-          addRandomSuffix: false,
-          allowOverwrite: false,
-          tokenPayload: clientPayload,
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        console.log("Blob upload completed", blob.url, tokenPayload);
-      },
-    });
+    if (!body || typeof body.fileName !== "string" || !body.fileName) {
+      return NextResponse.json(
+        { error: "Metadados invalidos" },
+        { status: 400 },
+      );
+    }
 
-    return NextResponse.json(jsonResponse);
+    if (typeof body.size !== "number" || body.size <= 0) {
+      return NextResponse.json({ error: "Tamanho invalido" }, { status: 400 });
+    }
+
+    // Defesa extra: o arquivo nao passa pelo servidor, mas recusamos tamanhos
+    // declarados acima do limite antes de assinar a URL.
+    if (body.size > MAX_UPLOAD_SIZE) {
+      return NextResponse.json(
+        { error: "Arquivo muito grande. Maximo 50MB" },
+        { status: 400 },
+      );
+    }
+
+    const contentType = body.contentType || "application/octet-stream";
+    const key = createObjectKey(body.fileName);
+
+    const uploadUrl = await createPresignedPutUrl(
+      key,
+      contentType,
+      PRESIGN_EXPIRES_SECONDS,
+    );
+    const publicUrl = publicUrlForKey(key);
+
+    return NextResponse.json({ uploadUrl, publicUrl });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Erro ao autorizar upload";
+      error instanceof Error ? error.message : "Erro ao gerar URL de upload";
 
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

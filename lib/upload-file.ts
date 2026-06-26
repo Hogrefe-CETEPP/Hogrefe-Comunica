@@ -1,7 +1,4 @@
-import { upload } from "@vercel/blob/client";
-
-const MAX_UPLOAD_SIZE = 30 * 1024 * 1024;
-const MULTIPART_UPLOAD_SIZE = 4 * 1024 * 1024;
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
 
 export interface UploadResult {
   success: boolean;
@@ -19,27 +16,6 @@ function getFile(input: FormData | File): File | null {
   return file instanceof File ? file : null;
 }
 
-function sanitizeFileName(fileName: string) {
-  const normalized = fileName
-    .normalize("NFC")
-    .replace(/[\\/]/g, "-")
-    .replace(/[\u0000-\u001f\u007f]/g, "")
-    .replace(/[?#%]/g, "-")
-    .replace(/\s+/g, " ")
-    .replace(/\.{2,}/g, ".")
-    .trim();
-
-  return normalized || "arquivo";
-}
-
-function createBlobPath(fileName: string) {
-  const safeFileName = sanitizeFileName(fileName);
-  const timestamp = Date.now();
-  const randomStr = Math.random().toString(36).substring(2, 8);
-
-  return `comunicados/${timestamp}-${randomStr}/${safeFileName}`;
-}
-
 export async function uploadFileToBlob(
   input: FormData | File,
 ): Promise<UploadResult> {
@@ -51,24 +27,54 @@ export async function uploadFileToBlob(
     }
 
     if (file.size > MAX_UPLOAD_SIZE) {
-      return { success: false, error: "Arquivo muito grande. Maximo 30MB" };
+      return { success: false, error: "Arquivo muito grande. Maximo 50MB" };
     }
 
-    const blob = await upload(createBlobPath(file.name), file, {
-      access: "public",
-      handleUploadUrl: "/api/upload",
-      contentType: file.type || "application/octet-stream",
-      multipart: file.size > MULTIPART_UPLOAD_SIZE,
-      clientPayload: JSON.stringify({
-        originalFileName: file.name,
+    // Mesmo valor usado para assinar e para o header do PUT (precisam bater).
+    const contentType = file.type || "application/octet-stream";
+
+    // 1. Pede ao servidor a URL presigned (PUT) e a URL publica final.
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType,
         size: file.size,
-        contentType: file.type || "application/octet-stream",
       }),
     });
 
+    const data = (await response.json().catch(() => null)) as {
+      uploadUrl?: string;
+      publicUrl?: string;
+      error?: string;
+    } | null;
+
+    if (!response.ok || !data?.uploadUrl || !data?.publicUrl) {
+      return {
+        success: false,
+        error: data?.error || "Erro ao iniciar upload do arquivo",
+      };
+    }
+
+    // 2. Envia o arquivo DIRETO para o S3 (nao passa pelo Lambda).
+    const putResponse = await fetch(data.uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": contentType },
+    });
+
+    if (!putResponse.ok) {
+      return {
+        success: false,
+        error: "Erro ao enviar arquivo para o storage",
+      };
+    }
+
+    // 3. Mesmo contrato de retorno de antes.
     return {
       success: true,
-      url: blob.url,
+      url: data.publicUrl,
       fileName: file.name,
     };
   } catch (error) {
@@ -85,8 +91,9 @@ export async function deleteFileFromBlob(
       return { success: false, error: "URL nao fornecida" };
     }
 
-    const { del } = await import("@vercel/blob");
-    await del(url);
+    // import dinamico para manter o SDK da AWS fora do bundle client.
+    const { deleteObjectFromS3 } = await import("@/lib/s3");
+    await deleteObjectFromS3(url);
 
     return { success: true };
   } catch (error) {
